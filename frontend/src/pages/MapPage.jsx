@@ -31,7 +31,7 @@ export default function MapPage() {
         >
           <ArrowLeft size={24} />
         </button>
-        <h2 className="text-xl font-bold text-emerald-700 dark:text-emerald-500">Survey Area</h2>
+        <h2 className="text-xl font-bold text-emerald-700 dark:text-emerald-500">GeoMeasure Elite</h2>
         
         {currentUser?.displayName ? (
           <span className="text-sm font-medium text-gray-400 dark:text-gray-500 hidden sm:block border-l border-gray-200 dark:border-gray-800 pl-3 ml-1">

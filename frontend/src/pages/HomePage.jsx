@@ -82,10 +82,10 @@ export default function HomePage() {
     return (
       <div className="flex flex-col items-center justify-center h-full bg-emerald-50 dark:bg-gray-900 p-6 transition-colors duration-300">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-md text-center border border-emerald-100 dark:border-gray-700">
-          <div className="bg-emerald-100 dark:bg-emerald-900/30 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Map size={40} className="text-emerald-600 dark:text-emerald-500" />
+          <div className="bg-emerald-100 dark:bg-emerald-900/30 w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg overflow-hidden border-2 border-emerald-500">
+            <img src="/logo.png" alt="GeoMeasure Elite Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">Land Measure Pro</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">GeoMeasure Elite</h1>
           <p className="text-gray-500 dark:text-gray-400 mb-8">Professional land surveying tools directly from satellite imagery.</p>
           <button 
             onClick={loginWithGoogle}
@@ -144,9 +144,9 @@ export default function HomePage() {
       <header className="bg-white dark:bg-gray-900 shadow-sm z-10 px-6 py-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
         <div className="flex items-center gap-3">
           <div className="bg-emerald-600 p-2 rounded-lg">
-            <Map size={24} className="text-white" />
+            <img src="/logo.png" alt="Logo" className="w-6 h-6 invert brightness-200" />
           </div>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white hidden sm:block">My Surveys</h1>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white hidden sm:block">GeoMeasure Elite</h1>
           {currentUser?.displayName ? (
             <span className="text-sm font-medium text-gray-500 dark:text-gray-400 hidden md:block border-l border-gray-300 dark:border-gray-700 pl-3 ml-1">
               Welcome, {currentUser.displayName}
