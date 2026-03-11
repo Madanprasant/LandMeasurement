@@ -83,17 +83,17 @@ export default function MapComponent({ polygonPoints, setPolygonPoints }) {
   return (
     <>
       {showClearModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all border border-gray-100 dark:border-gray-700">
              <div className="flex items-center gap-3 mb-4">
-                 <div className="bg-red-100 p-2 rounded-full">
-                    <Trash2 className="text-red-600" size={24} />
+                 <div className="bg-red-100 dark:bg-red-900/30 p-2 rounded-full">
+                    <Trash2 className="text-red-600 dark:text-red-400" size={24} />
                  </div>
-                 <h3 className="text-xl font-bold text-gray-900">Clear Map?</h3>
+                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Clear Map?</h3>
              </div>
-             <p className="text-gray-600 mb-6">Are you sure you want to delete all boundary points? This action cannot be undone.</p>
+             <p className="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete all boundary points? This action cannot be undone.</p>
              <div className="flex justify-end gap-3">
-               <button onClick={() => setShowClearModal(false)} className="px-5 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+               <button onClick={() => setShowClearModal(false)} className="px-5 py-2 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
                <button onClick={confirmClearPoints} className="px-5 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-sm">Delete</button>
              </div>
            </div>
@@ -143,18 +143,18 @@ export default function MapComponent({ polygonPoints, setPolygonPoints }) {
       {/* Floating Action Buttons */}
       <div className="absolute right-4 top-20 z-[400] flex flex-col gap-3">
         {/* Map Modes Switcher */}
-        <div className="flex flex-col bg-white rounded-full shadow-xl border border-gray-200 overflow-hidden mb-2">
+        <div className="flex flex-col bg-white dark:bg-gray-900 rounded-full shadow-xl border border-gray-200 dark:border-gray-800 overflow-hidden mb-2 transition-colors duration-300">
            <button 
              onClick={() => setMapMode('view')}
-             className={`p-3 transition-colors ${mapMode === 'view' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:bg-gray-50'}`}
+             className={`p-3 transition-colors ${mapMode === 'view' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
              title="View / Pan Mode (Safe)"
            >
              <Hand size={22} />
            </button>
-           <div className="h-px bg-gray-200 w-full"></div>
+           <div className="h-px bg-gray-200 dark:bg-gray-800 w-full"></div>
            <button 
              onClick={() => setMapMode('measure')}
-             className={`p-3 transition-colors ${mapMode === 'measure' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500 hover:bg-gray-50'}`}
+             className={`p-3 transition-colors ${mapMode === 'measure' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
              title="Measure / Draw Mode"
            >
              <MousePointerClick size={22} />
@@ -164,10 +164,10 @@ export default function MapComponent({ polygonPoints, setPolygonPoints }) {
         {/* Toggle Live Tracking */}
         <button 
           onClick={tracker.toggleTracking}
-          className={`p-3 rounded-full shadow-xl border focus:outline-none transition-colors ${
+          className={`p-3 rounded-full shadow-xl border focus:outline-none transition-all duration-300 ${
             tracker.isTracking 
-            ? 'bg-blue-100 border-blue-200 text-blue-600 animate-pulse' 
-            : 'bg-white border-gray-200 text-gray-700 hover:text-blue-600'
+            ? 'bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 animate-pulse' 
+            : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400'
           }`}
           title="Live GPS Tracking"
         >
@@ -177,7 +177,7 @@ export default function MapComponent({ polygonPoints, setPolygonPoints }) {
         {/* Find Me (One off) */}
         <button 
           onClick={centerOnUser}
-          className="bg-white p-3 rounded-full shadow-xl border border-gray-200 text-gray-700 hover:text-emerald-600 focus:outline-none"
+          className="bg-white dark:bg-gray-900 p-3 rounded-full shadow-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-500 focus:outline-none transition-colors duration-300"
           title="My Location"
         >
           <Locate size={24} />
@@ -189,7 +189,7 @@ export default function MapComponent({ polygonPoints, setPolygonPoints }) {
         {polygonPoints.length > 0 && (
           <button 
             onClick={removeLastPoint}
-            className="bg-white p-3 rounded-full shadow-xl border border-gray-200 text-gray-700 hover:text-amber-600 focus:outline-none"
+            className="bg-white dark:bg-gray-900 p-3 rounded-full shadow-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-500 focus:outline-none transition-colors duration-300"
             title="Undo Last Click"
           >
             <Undo size={24} />
@@ -198,7 +198,7 @@ export default function MapComponent({ polygonPoints, setPolygonPoints }) {
         {polygonPoints.length > 0 && (
           <button 
             onClick={attemptClearPoints}
-            className="bg-white p-3 rounded-full shadow-xl border border-gray-200 text-red-600 hover:bg-red-50 focus:outline-none"
+            className="bg-white dark:bg-gray-900 p-3 rounded-full shadow-xl border border-gray-200 dark:border-gray-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none transition-colors duration-300"
             title="Clear Map"
           >
             <Trash2 size={24} />

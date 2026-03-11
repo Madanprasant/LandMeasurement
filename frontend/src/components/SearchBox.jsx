@@ -99,13 +99,13 @@ export default function SearchBox({ onSelectLocation }) {
 
   return (
     <div ref={wrapperRef} className="absolute top-4 left-4 right-16 sm:right-auto sm:w-80 z-[1000]">
-      <div className="relative flex items-center bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-        <div className="pl-3 text-gray-400">
-          {isLoading ? <Loader2 size={20} className="animate-spin text-emerald-600" /> : <Search size={20} />}
+      <div className="relative flex items-center bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden transition-colors duration-300">
+        <div className="pl-3 text-gray-400 dark:text-gray-500">
+          {isLoading ? <Loader2 size={20} className="animate-spin text-emerald-600 dark:text-emerald-500" /> : <Search size={20} />}
         </div>
         <input
           type="text"
-          className="w-full py-3 px-3 outline-none text-gray-700 bg-transparent placeholder-gray-500 font-medium"
+          className="w-full py-3 px-3 outline-none text-gray-700 dark:text-gray-200 bg-transparent placeholder-gray-500 dark:placeholder-gray-500 font-medium"
           placeholder="Search for a place or village..."
           value={query}
           onChange={(e) => {
@@ -115,21 +115,21 @@ export default function SearchBox({ onSelectLocation }) {
           onFocus={() => { setIsOpen(true); }}
         />
         {query && (
-          <button onClick={clearSearch} className="pr-3 text-gray-400 hover:text-red-500 transition-colors">
+          <button onClick={clearSearch} className="pr-3 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors">
             <X size={20} />
           </button>
         )}
       </div>
 
       {isOpen && (results.length > 0 || (recentSearches.length > 0 && !query.trim())) && (
-        <div className="mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-80 overflow-y-auto">
+        <div className="mt-2 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden max-h-80 overflow-y-auto">
           {/* Recent Searches Header */}
           {!query.trim() && recentSearches.length > 0 && (
-            <div className="bg-gray-50 px-4 py-2 flex justify-between items-center border-b border-gray-100">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Recent Searches</span>
+            <div className="bg-gray-50 dark:bg-gray-800/50 px-4 py-2 flex justify-between items-center border-b border-gray-100 dark:border-gray-800">
+              <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Recent Searches</span>
               <button 
                 onClick={clearHistory}
-                className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold"
+                className="text-xs text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400 font-semibold"
               >
                 Clear All
               </button>
@@ -143,10 +143,10 @@ export default function SearchBox({ onSelectLocation }) {
                 <li 
                   key={place.place_id}
                   onClick={() => handleSelect(place)}
-                  className="flex items-start gap-3 p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors"
+                  className="flex items-start gap-3 p-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-0 transition-colors"
                 >
-                  <MapPin size={18} className="text-emerald-600 shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700 line-clamp-2 leading-snug">{place.display_name}</span>
+                  <MapPin size={18} className="text-emerald-600 dark:text-emerald-500 shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-700 dark:text-gray-200 line-clamp-2 leading-snug">{place.display_name}</span>
                 </li>
               ))
             ) : (
@@ -155,17 +155,17 @@ export default function SearchBox({ onSelectLocation }) {
                 <li 
                   key={place.place_id}
                   onClick={() => handleSelect(place)}
-                  className="flex items-start gap-3 p-4 hover:bg-emerald-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors"
+                  className="flex items-start gap-3 p-4 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 cursor-pointer border-b border-gray-50 dark:border-gray-800 last:border-0 transition-colors"
                 >
-                  <Loader2 size={18} className="text-gray-400 shrink-0 mt-0.5" /> {/* Use loader or clock icon for history */}
-                  <span className="text-sm text-gray-600 line-clamp-2 leading-snug italic">{place.display_name}</span>
+                  <Loader2 size={18} className="text-gray-400 dark:text-gray-600 shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-snug italic">{place.display_name}</span>
                 </li>
               ))
             )}
           </ul>
           
           {query.trim().length >= 1 && query.trim().length < 3 && !results.length && (
-            <div className="p-4 text-center text-gray-400 text-sm italic">
+            <div className="p-4 text-center text-gray-400 dark:text-gray-600 text-sm italic">
               Type at least 3 characters...
             </div>
           )}

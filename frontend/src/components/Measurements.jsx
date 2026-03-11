@@ -10,6 +10,7 @@ export default function MeasurementsPanel({ polygonPoints }) {
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveTitle, setSaveTitle] = useState("New Survey");
+  const [saveNotes, setSaveNotes] = useState("");
   const [errorMsg, setErrorMsg] = useState(null);
 
   const handleSaveClick = () => {
@@ -38,7 +39,8 @@ export default function MeasurementsPanel({ polygonPoints }) {
             cents: metrics.areaCents,
             acres: metrics.areaAcres
           },
-          perimeters: metrics.perimeters
+          perimeters: metrics.perimeters,
+          notes: saveNotes
         })
       });
 
@@ -60,19 +62,26 @@ export default function MeasurementsPanel({ polygonPoints }) {
   return (
     <>
       {showSaveModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all scale-100">
-             <h3 className="text-xl font-bold text-gray-900 mb-2">Save Land Survey</h3>
-             <p className="text-sm text-gray-500 mb-4">Enter a descriptive name for this property boundary.</p>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all scale-100 border border-gray-100 dark:border-gray-700">
+             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Save Land Survey</h3>
+             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Enter a descriptive name for this property boundary.</p>
              <input 
                type="text" 
                value={saveTitle} 
                onChange={e => setSaveTitle(e.target.value)} 
-               autoFocus
-               className="w-full border border-gray-300 rounded-lg p-3 mb-6 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" 
+               placeholder="Property Name"
+               className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-3 mb-4 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none" 
+             />
+             <textarea 
+               value={saveNotes} 
+               onChange={e => setSaveNotes(e.target.value)} 
+               placeholder="Additional notes (optional)..."
+               rows={3}
+               className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg p-3 mb-6 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none resize-none text-sm" 
              />
              <div className="flex justify-end gap-3">
-               <button onClick={() => setShowSaveModal(false)} className="px-5 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+               <button onClick={() => setShowSaveModal(false)} className="px-5 py-2 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Cancel</button>
                <button onClick={confirmSave} className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">Save Record</button>
              </div>
            </div>
@@ -81,18 +90,18 @@ export default function MeasurementsPanel({ polygonPoints }) {
 
       {/* Error Popup Modal */}
       {errorMsg && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-           <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all scale-100">
-             <h3 className="text-xl font-bold text-red-600 mb-2">Error Saving Record</h3>
-             <p className="text-sm text-gray-700 mb-6">{errorMsg}</p>
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all scale-100 border border-red-100 dark:border-red-900/30">
+             <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Error Saving Record</h3>
+             <p className="text-sm text-gray-700 dark:text-gray-300 mb-6">{errorMsg}</p>
              <div className="flex justify-end">
-               <button onClick={() => setErrorMsg(null)} className="px-5 py-2 bg-gray-200 text-gray-800 font-bold rounded-lg hover:bg-gray-300 transition-colors shadow-sm">Close</button>
+               <button onClick={() => setErrorMsg(null)} className="px-5 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-sm">Close</button>
              </div>
            </div>
         </div>
       )}
 
-      <div className="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-gray-200 shadow-xl z-10 flex flex-col h-1/3 md:h-full transition-all">
+      <div className="w-full md:w-80 bg-white dark:bg-gray-900 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800 shadow-xl z-20 flex flex-col h-1/3 md:h-full transition-all duration-300">
         <div className="p-4 bg-emerald-700 text-white shadow-md">
           <h2 className="text-xl font-bold">Land Survey Data</h2>
           <p className="text-sm text-emerald-100 opacity-90">Points plotted: {polygonPoints.length}</p>
@@ -100,46 +109,46 @@ export default function MeasurementsPanel({ polygonPoints }) {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-6">
         {polygonPoints.length < 3 ? (
-          <div className="text-center text-gray-500 mt-10">
+          <div className="text-center text-gray-500 dark:text-gray-400 mt-10">
             <p className="text-lg mb-2">Not enough points</p>
             <p className="text-sm">Tap on the map to add at least 3 points to form a boundary and calculate area.</p>
           </div>
         ) : (
           <>
             {/* Area Section */}
-            <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
-              <h3 className="text-sm uppercase tracking-wider text-emerald-800 font-semibold mb-3">Total Area</h3>
+            <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-lg p-4 border border-emerald-100 dark:border-emerald-900/30">
+              <h3 className="text-sm uppercase tracking-wider text-emerald-800 dark:text-emerald-400 font-semibold mb-3">Total Area</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Sq. Feet</p>
-                  <p className="text-xl font-bold text-gray-800">{metrics.areaSqFt.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Sq. Feet</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-white">{metrics.areaSqFt.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Cents</p>
-                  <p className="text-xl font-bold text-gray-800">{metrics.areaCents.toLocaleString(undefined, { maximumFractionDigits: 3 })}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Cents</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-white">{metrics.areaCents.toLocaleString(undefined, { maximumFractionDigits: 3 })}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Acres</p>
-                  <p className="text-xl font-bold text-gray-800">{metrics.areaAcres.toLocaleString(undefined, { maximumFractionDigits: 4 })}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Acres</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-white">{metrics.areaAcres.toLocaleString(undefined, { maximumFractionDigits: 4 })}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Sq. Meters</p>
-                  <p className="text-xl font-bold text-gray-800">{metrics.areaSqMeters.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Sq. Meters</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-white">{metrics.areaSqMeters.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </div>
 
             {/* Perimeter/Sides Section */}
             <div>
-              <h3 className="text-sm uppercase tracking-wider text-gray-500 font-semibold mb-3 border-b pb-2">Boundary Sides</h3>
+              <h3 className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold mb-3 border-b dark:border-gray-800 pb-2">Boundary Sides</h3>
               <ul className="space-y-3">
                 {metrics.perimeters.map((side, idx) => (
-                  <li key={idx} className="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100">
-                    <span className="font-medium text-gray-700">{side.segment}</span>
+                  <li key={idx} className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-3 rounded border border-gray-100 dark:border-gray-800">
+                    <span className="font-medium text-gray-700 dark:text-gray-200">{side.segment}</span>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-emerald-600">{side.feet.toFixed(2)} ft</p>
-                      <p className="text-xs text-gray-500">{side.meters.toFixed(2)} m</p>
+                      <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{side.feet.toFixed(2)} ft</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{side.meters.toFixed(2)} m</p>
                     </div>
                   </li>
                 ))}
@@ -147,7 +156,7 @@ export default function MeasurementsPanel({ polygonPoints }) {
             </div>
             
             {/* Save Button */}
-            <div className="mt-auto pt-4 border-t border-gray-200">
+            <div className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-800">
               <button 
                 onClick={handleSaveClick}
                 disabled={isSaving}
