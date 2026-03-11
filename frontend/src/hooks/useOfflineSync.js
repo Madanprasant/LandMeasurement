@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { offlineDb } from '../db/offlineDb';
+import { API_BASE_URL } from '../config/api';
 
 export default function useOfflineSync() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -53,7 +54,7 @@ export default function useOfflineSync() {
       // In a real production app, you might use a batch endpoint
       for (const record of records) {
         const { id, ...data } = record;
-        const response = await fetch('http://localhost:5005/api/lands', {
+        const response = await fetch(`${API_BASE_URL}/lands`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)

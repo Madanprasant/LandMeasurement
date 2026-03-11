@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { CloudOff, CheckCircle2 } from 'lucide-react';
 import useOfflineSync from '../hooks/useOfflineSync';
+import { API_BASE_URL } from '../config/api';
 
 export default function MeasurementsPanel({ polygonPoints, record }) {
   const metrics = useMemo(() => calculateLandMetrics(polygonPoints), [polygonPoints]);
@@ -59,7 +60,7 @@ export default function MeasurementsPanel({ polygonPoints, record }) {
     }
 
     try {
-      const response = await fetch('http://localhost:5005/api/lands', {
+      const response = await fetch(`${API_BASE_URL}/lands`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(recordData)

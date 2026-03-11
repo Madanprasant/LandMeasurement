@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Map, Plus, LogOut, Calendar, MapPin, Loader2, Trash2, X, Sun, Moon, CloudOff, RefreshCw, MessageCircle, FileDown } from 'lucide-react';
 import { offlineDb } from '../db/offlineDb';
 import { getWhatsAppShareLink, generatePDFReport } from '../utils/shareUtils';
+import { API_BASE_URL } from '../config/api';
 
 export default function HomePage() {
   const { currentUser, loginWithGoogle, logout } = useAuth();
@@ -28,7 +29,7 @@ export default function HomePage() {
       // 1. Fetch from Server
       let serverRecords = [];
       try {
-        const res = await fetch(`http://localhost:5005/api/lands/${currentUser.uid}`);
+        const res = await fetch(`${API_BASE_URL}/lands/${currentUser.uid}`);
         if (res.ok) {
           serverRecords = await res.json();
         }
@@ -60,7 +61,7 @@ export default function HomePage() {
     setIsDeleting(true);
     setErrorHeader(null);
     try {
-      const res = await fetch(`http://localhost:5005/api/lands/${deleteId}`, {
+      const res = await fetch(`${API_BASE_URL}/lands/${deleteId}`, {
         method: 'DELETE',
       });
       if (res.ok) {

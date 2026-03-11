@@ -10,7 +10,15 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',           // Vite Dev
+    'http://localhost:3000',           // Alternative Local
+    /\.vercel\.app$/                   // All Vercel deployments
+  ],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
