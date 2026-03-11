@@ -38,7 +38,7 @@ export default function useLocationTracker() {
             const to = turf.point([newLoc.lng, newLoc.lat]);
             const distance = turf.distance(from, to, { units: 'meters' });
 
-            if (distance >= 5) { // 5 meter threshold
+            if (distance >= 5) { // 5 meter threshold for point drop
               lastDroppedRef.current = newLoc;
               setWalkPath((prev) => [...prev, newLoc]);
             }
@@ -52,8 +52,8 @@ export default function useLocationTracker() {
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 5000,
-        timeout: 10000
+        maximumAge: 1000, // Faster updates for smoother tracking
+        timeout: 15000
       }
     );
   }, [walkMode]);
@@ -85,6 +85,13 @@ export default function useLocationTracker() {
     }
   };
 
+  // NEW: Manual Point Injection for Hybrid Correction
+  const addManualPointToPath = (lat, lng) => {
+    const manualPoint = { lat, lng, isManual: true };
+    setWalkPath((prev) => [...prev, manualPoint]);
+    lastDroppedRef.current = manualPoint; // Sync GPS tracker to this manual point
+  };
+
   return {
     location,
     isTracking,
@@ -95,6 +102,7 @@ export default function useLocationTracker() {
     stopTracking,
     toggleTracking,
     toggleWalkMode,
-    setWalkPath
+    setWalkPath,
+    addManualPointToPath // Exported for correction mode
   };
 }

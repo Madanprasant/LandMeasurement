@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Polygon, CircleMarker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { Locate, Navigation, Trash2, Undo, MousePointerClick, Hand, Footprints, Check } from 'lucide-react';
+import { Locate, Navigation, Trash2, Undo, MousePointerClick, Hand, Footprints, Check, Crosshair, Map as MapIcon } from 'lucide-react';
+import * as turf from '@turf/turf';
 import SearchBox from './SearchBox';
 import useLocationTracker from '../hooks/useLocationTracker';
 
@@ -14,11 +15,13 @@ L.Icon.Default.mergeOptions({
 });
 
 // Component to handle map clicks
-function MapInteractionHandler({ points, setPoints, mode }) {
+function MapInteractionHandler({ points, setPoints, mode, onCorrect }) {
   useMapEvents({
     click(e) {
       if (mode === 'measure') {
         setPoints([...points, { lat: e.latlng.lat, lng: e.latlng.lng }]);
+      } else if (mode === 'correct') {
+        onCorrect(e.latlng.lat, e.latlng.lng);
       }
     }
   });
@@ -28,8 +31,9 @@ function MapInteractionHandler({ points, setPoints, mode }) {
 export default function MapComponent({ polygonPoints, setPolygonPoints, isSavedRecord }) {
   const [center, setCenter] = useState([20.5937, 78.9629]); // Default center India
   const [mapObj, setMapObj] = useState(null);
-  const [mapMode, setMapMode] = useState(isSavedRecord ? 'view' : 'measure'); // Default to view for saved records
+  const [mapMode, setMapMode] = useState(isSavedRecord ? 'view' : 'measure'); // 'view', 'measure', 'correct'
   const tracker = useLocationTracker();
+  const lastCenteredRef = React.useRef(null);
 
   // Auto-zoom to land when points are loaded
   useEffect(() => {
@@ -55,7 +59,22 @@ export default function MapComponent({ polygonPoints, setPolygonPoints, isSavedR
   // Watch for tracked location changes and pan map if tracking is active
   useEffect(() => {
     if (tracker.isTracking && tracker.location && mapObj) {
-        mapObj.flyTo([tracker.location.lat, tracker.location.lng], mapObj.getZoom(), { animate: true, duration: 1.5 });
+        const userLatLng = [tracker.location.lat, tracker.location.lng];
+        
+        // Initial Snap or Significant Movement (> 3m) smoothing
+        if (!lastCenteredRef.current) {
+            mapObj.flyTo(userLatLng, 18);
+            lastCenteredRef.current = userLatLng;
+        } else {
+            const from = turf.point([lastCenteredRef.current[1], lastCenteredRef.current[0]]);
+            const to = turf.point([userLatLng[1], userLatLng[0]]);
+            const moveDistance = turf.distance(from, to, { units: 'meters' });
+
+            if (moveDistance > 3) { // 3 meter movement threshold to prevent vibration
+                mapObj.panTo(userLatLng, { animate: true, duration: 1.0 });
+                lastCenteredRef.current = userLatLng;
+            }
+        }
     }
   }, [tracker.location, tracker.isTracking, mapObj]);
 
@@ -163,7 +182,12 @@ export default function MapComponent({ polygonPoints, setPolygonPoints, isSavedR
           maxZoom={19}
         />
         
-        <MapInteractionHandler points={polygonPoints} setPoints={setPolygonPoints} mode={mapMode} />
+        <MapInteractionHandler 
+          points={polygonPoints} 
+          setPoints={setPolygonPoints} 
+          mode={mapMode} 
+          onCorrect={(lat, lng) => tracker.addManualPointToPath(lat, lng)}
+        />
 
         {polygonPoints.map((pt, idx) => (
           <Marker key={idx} position={[pt.lat, pt.lng]} />
@@ -187,35 +211,72 @@ export default function MapComponent({ polygonPoints, setPolygonPoints, isSavedR
 
         {/* Walk Mode Path Visualization */}
         {tracker.walkMode && tracker.walkPath.length > 0 && (
-          <Polygon
-            positions={tracker.walkPath.map(p => [p.lat, p.lng])}
-            pathOptions={{ 
-              color: '#3b82f6', 
-              dashArray: '10, 10', 
-              fillColor: '#3b82f6', 
-              fillOpacity: 0.2, 
-              weight: 2 
-            }}
-          />
+          <>
+            <Polygon
+              positions={tracker.walkPath.map(p => [p.lat, p.lng])}
+              pathOptions={{ 
+                color: '#3b82f6', 
+                dashArray: '10, 10', 
+                fillColor: '#3b82f6', 
+                fillOpacity: 0.2, 
+                weight: 2 
+              }}
+            />
+            {/* Show manual markers in a different style during walk */}
+            {tracker.walkPath.filter(p => p.isManual).map((p, i) => (
+              <CircleMarker 
+                key={`manual-${i}`} 
+                center={[p.lat, p.lng]} 
+                radius={5} 
+                pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 1 }} 
+              />
+            ))}
+          </>
         )}
       </MapContainer>
 
       {/* Walk Mode Active Banner */}
       {tracker.walkMode && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[1000] bg-blue-600 text-white px-6 py-2 rounded-full shadow-2xl flex items-center gap-3 animate-bounce">
-           <Footprints size={20} />
-           <span className="font-bold text-sm">Walk Mode: {tracker.walkPath.length} points collected</span>
-           <button 
-             onClick={() => {
-               if (tracker.walkPath.length >= 3) {
-                 setPolygonPoints(tracker.walkPath);
-               }
-               tracker.toggleWalkMode();
-             }}
-             className="ml-2 bg-white text-blue-600 px-3 py-1 rounded-lg text-xs font-black hover:bg-blue-50 transition-colors"
-           >
-             FINISH WALK
-           </button>
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[1000] bg-gray-900 border border-blue-500/50 text-white px-4 py-2 rounded-2xl shadow-2xl flex flex-col gap-2 min-w-[280px]">
+           <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                 <Footprints size={18} className="text-blue-400" />
+                 <span className="font-bold text-xs uppercase tracking-widest text-blue-300">Field Walk Active</span>
+              </div>
+              <span className="bg-blue-600/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-500/30">
+                {tracker.walkPath.length} Pts
+              </span>
+           </div>
+
+           <div className="grid grid-cols-2 gap-2">
+              <button 
+                onClick={() => setMapMode(mapMode === 'correct' ? 'view' : 'correct')}
+                className={`flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
+                  mapMode === 'correct' 
+                  ? 'bg-amber-600 text-white' 
+                  : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                }`}
+              >
+                {mapMode === 'correct' ? <Check size={14} /> : <Crosshair size={14} />}
+                {mapMode === 'correct' ? 'Stop Correcting' : 'Correction Mode'}
+              </button>
+              <button 
+                onClick={() => {
+                   if (tracker.walkPath.length >= 3) setPolygonPoints(tracker.walkPath);
+                   tracker.toggleWalkMode();
+                   setMapMode('view');
+                }}
+                className="flex items-center justify-center gap-2 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/40"
+              >
+                DONE
+              </button>
+           </div>
+           
+           {mapMode === 'correct' && (
+             <div className="text-[10px] text-amber-400 text-center animate-pulse">
+               TAP MAP TO MANUALLY DROP CORRECTION POINT
+             </div>
+           )}
         </div>
       )}
 
