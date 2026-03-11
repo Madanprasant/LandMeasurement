@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Map, Plus, LogOut, Calendar, MapPin, Loader2, Trash2, X, Sun, Moon } from 'lucide-react';
+import { Map, Plus, LogOut, Calendar, MapPin, Loader2, Trash2, X, Sun, Moon, CloudOff, RefreshCw } from 'lucide-react';
+import { offlineDb } from '../db/offlineDb';
 
 export default function HomePage() {
   const { currentUser, loginWithGoogle, logout } = useAuth();
@@ -23,12 +24,24 @@ export default function HomePage() {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      // In a real app we hit the backend on port 5005:
-      const res = await fetch(`http://localhost:5005/api/lands/${currentUser.uid}`);
-      if (res.ok) {
-        const data = await res.json();
-        setRecords(data);
+      // 1. Fetch from Server
+      let serverRecords = [];
+      try {
+        const res = await fetch(`http://localhost:5005/api/lands/${currentUser.uid}`);
+        if (res.ok) {
+          serverRecords = await res.json();
+        }
+      } catch (e) {
+        console.warn("Server fetch failed, using offline fallback if available");
       }
+
+      // 2. Fetch from IndexedDB (Pending Sync)
+      const offlineRecords = await offlineDb.pendingLands
+        .where('userId').equals(currentUser.uid)
+        .toArray();
+
+      // Merge them
+      setRecords([...offlineRecords, ...serverRecords]);
     } catch (error) {
       console.error("Failed to fetch records:", error);
     } finally {
@@ -192,25 +205,34 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {records.map(record => (
+            {records.map((record, idx) => (
               <div 
-                key={record._id} 
+                key={record._id || `offline-${idx}`} 
                 onClick={() => navigate('/map', { state: { record } })}
-                className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-800 cursor-pointer overflow-hidden flex flex-col hover:-translate-y-1"
+                className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border cursor-pointer overflow-hidden flex flex-col hover:-translate-y-1 ${
+                  record.isOffline 
+                  ? 'border-amber-200 dark:border-amber-900/40 border-l-4 border-l-amber-500' 
+                  : 'border-gray-100 dark:border-gray-800'
+                }`}
               >
-                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-4 border-b border-emerald-100 dark:border-emerald-900/30 flex justify-between items-start">
+                <div className={`${record.isOffline ? 'bg-amber-50 dark:bg-amber-900/10' : 'bg-emerald-50 dark:bg-emerald-900/10'} p-4 border-b ${record.isOffline ? 'border-amber-100 dark:border-amber-900/30' : 'border-emerald-100 dark:border-emerald-900/30'} flex justify-between items-start`}>
                   <div className="flex-1 min-w-0 pr-2">
-                    <h3 className="font-bold text-gray-800 dark:text-white text-lg truncate">{record.title}</h3>
+                    <h3 className="font-bold text-gray-800 dark:text-white text-lg truncate flex items-center gap-2">
+                      {record.title}
+                      {record.isOffline && <CloudOff size={14} className="text-amber-600" title="Pending Sync" />}
+                    </h3>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <button 
-                      onClick={(e) => handleDeleteClick(e, record._id)}
-                      className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                      title="Delete Record"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                    <div className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-400 text-xs font-bold px-2 py-1 rounded-md">
+                    {!record.isOffline && (
+                      <button 
+                        onClick={(e) => handleDeleteClick(e, record._id)}
+                        className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                        title="Delete Record"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                    <div className={`${record.isOffline ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-400'} text-xs font-bold px-2 py-1 rounded-md`}>
                       {record.boundary.length} Pts
                     </div>
                   </div>

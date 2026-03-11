@@ -2,8 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { calculateLandMetrics } from '../utils/geoCalculations';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Share2, FileDown, MessageCircle, CloudOff, CheckCircle2 } from 'lucide-react';
+import { getWhatsAppShareLink, generatePDFReport } from '../utils/shareUtils';
+import useOfflineSync from '../hooks/useOfflineSync';
 
-export default function MeasurementsPanel({ polygonPoints }) {
+export default function MeasurementsPanel({ polygonPoints, record }) {
   const metrics = useMemo(() => calculateLandMetrics(polygonPoints), [polygonPoints]);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -12,6 +15,8 @@ export default function MeasurementsPanel({ polygonPoints }) {
   const [saveTitle, setSaveTitle] = useState("New Survey");
   const [saveNotes, setSaveNotes] = useState("");
   const [errorMsg, setErrorMsg] = useState(null);
+  const [showSyncSuccess, setShowSyncSuccess] = useState(false);
+  const { isOnline, saveOffline } = useOfflineSync();
 
   const handleSaveClick = () => {
     if (!currentUser) {
@@ -25,23 +30,40 @@ export default function MeasurementsPanel({ polygonPoints }) {
   const confirmSave = async () => {
     setShowSaveModal(false);
     setIsSaving(true);
+    
+    const recordData = {
+      userId: currentUser.uid,
+      title: saveTitle || "Nameless Survey",
+      boundary: polygonPoints,
+      area: {
+        sqMeters: metrics.areaSqMeters,
+        sqFt: metrics.areaSqFt,
+        cents: metrics.areaCents,
+        acres: metrics.areaAcres
+      },
+      perimeters: metrics.perimeters,
+      notes: saveNotes
+    };
+
+    if (!isOnline) {
+      try {
+        await saveOffline(recordData);
+        setIsSaving(false);
+        setShowSyncSuccess(true);
+        setTimeout(() => navigate('/'), 2000);
+        return;
+      } catch (err) {
+        setErrorMsg("Failed to save even to local storage. Try again.");
+        setIsSaving(false);
+        return;
+      }
+    }
+
     try {
       const response = await fetch('http://localhost:5005/api/lands', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser.uid,
-          title: saveTitle || "Nameless Survey",
-          boundary: polygonPoints,
-          area: {
-            sqMeters: metrics.areaSqMeters,
-            sqFt: metrics.areaSqFt,
-            cents: metrics.areaCents,
-            acres: metrics.areaAcres
-          },
-          perimeters: metrics.perimeters,
-          notes: saveNotes
-        })
+        body: JSON.stringify(recordData)
       });
 
       if (response.ok) {
@@ -101,6 +123,27 @@ export default function MeasurementsPanel({ polygonPoints }) {
         </div>
       )}
 
+      {/* Offline Success Modal */}
+      {showSyncSuccess && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 text-center">
+           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-sm transform transition-all border border-emerald-500/30">
+              <div className="flex flex-col items-center">
+                <div className="bg-emerald-100 dark:bg-emerald-900/40 p-4 rounded-full mb-4">
+                  <CloudOff className="text-emerald-600 dark:text-emerald-400" size={40} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Saved Offline</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
+                  You are currently offline. Your survey is safe in local storage and will automatically sync to our servers as soon as you reconnect to the internet.
+                </p>
+                <div className="flex items-center justify-center gap-2 text-emerald-600 font-bold">
+                  <CheckCircle2 size={18} />
+                  <span>Redirecting to Dashboard...</span>
+                </div>
+              </div>
+           </div>
+        </div>
+      )}
+
       <div className="w-full md:w-80 bg-white dark:bg-gray-900 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-800 shadow-xl z-20 flex flex-col h-1/3 md:h-full transition-all duration-300">
         <div className="p-4 bg-emerald-700 text-white shadow-md">
           <h2 className="text-xl font-bold">Land Survey Data</h2>
@@ -153,6 +196,30 @@ export default function MeasurementsPanel({ polygonPoints }) {
                   </li>
                 ))}
               </ul>
+            </div>
+            
+            {/* Sharing & Reports Section */}
+            <div className="flex flex-col gap-3">
+               <h3 className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 font-semibold mb-1 border-b dark:border-gray-800 pb-2">Share & Reports</h3>
+               <div className="grid grid-cols-2 gap-3">
+                  <button 
+                    onClick={() => {
+                        const shareLink = getWhatsAppShareLink(record || { title: "New Survey", boundary: polygonPoints }, metrics);
+                        window.open(shareLink, '_blank');
+                    }}
+                    className="flex items-center justify-center gap-2 py-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-xl font-bold hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-all border border-emerald-200 dark:border-emerald-800"
+                  >
+                    <MessageCircle size={20} />
+                    WhatsApp
+                  </button>
+                  <button 
+                    onClick={() => generatePDFReport(record || { title: "New Survey", boundary: polygonPoints }, metrics)}
+                    className="flex items-center justify-center gap-2 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-xl font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all border border-blue-100 dark:border-blue-900/30"
+                  >
+                    <FileDown size={20} />
+                    PDF Report
+                  </button>
+               </div>
             </div>
             
             {/* Save Button */}

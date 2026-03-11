@@ -12,6 +12,7 @@ export default function MapPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [polygonPoints, setPolygonPoints] = useState([]);
+  const isSavedRecord = location.state?.record ? true : false;
 
   // If we navigated here from a saved record card, populate its points
   useEffect(() => {
@@ -55,10 +56,17 @@ export default function MapPage() {
 
       <div className="flex-1 relative flex flex-col md:flex-row overflow-hidden">
         <div className="flex-1 relative z-0">
-          <MapComponent polygonPoints={polygonPoints} setPolygonPoints={setPolygonPoints} />
+          <MapComponent 
+            polygonPoints={polygonPoints} 
+            setPolygonPoints={setPolygonPoints} 
+            isSavedRecord={isSavedRecord} 
+          />
         </div>
         
-        <MeasurementsPanel polygonPoints={polygonPoints} />
+        <MeasurementsPanel 
+          polygonPoints={polygonPoints} 
+          record={location.state?.record} 
+        />
       </div>
     </div>
   );

@@ -1,10 +1,14 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import * as turf from '@turf/turf';
 
 export default function useLocationTracker() {
   const [location, setLocation] = useState(null);
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState(null);
+  const [walkMode, setWalkMode] = useState(false);
+  const [walkPath, setWalkPath] = useState([]); // Points collected during walk
   const watchIdRef = useRef(null);
+  const lastDroppedRef = useRef(null);
 
   const startTracking = useCallback(() => {
     if (!navigator.geolocation) {
@@ -17,11 +21,29 @@ export default function useLocationTracker() {
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
-        setLocation({
+        const newLoc = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
           accuracy: position.coords.accuracy
-        });
+        };
+        setLocation(newLoc);
+
+        // Walk Mode Logic: Auto-drop point every 5 meters
+        if (walkMode) {
+          if (!lastDroppedRef.current) {
+            lastDroppedRef.current = newLoc;
+            setWalkPath((prev) => [...prev, newLoc]);
+          } else {
+            const from = turf.point([lastDroppedRef.current.lng, lastDroppedRef.current.lat]);
+            const to = turf.point([newLoc.lng, newLoc.lat]);
+            const distance = turf.distance(from, to, { units: 'meters' });
+
+            if (distance >= 5) { // 5 meter threshold
+              lastDroppedRef.current = newLoc;
+              setWalkPath((prev) => [...prev, newLoc]);
+            }
+          }
+        }
       },
       (err) => {
         setIsTracking(false);
@@ -30,11 +52,11 @@ export default function useLocationTracker() {
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 10000,
-        timeout: 5000
+        maximumAge: 5000,
+        timeout: 10000
       }
     );
-  }, []);
+  }, [walkMode]);
 
   const stopTracking = useCallback(() => {
     if (watchIdRef.current !== null) {
@@ -42,7 +64,7 @@ export default function useLocationTracker() {
       watchIdRef.current = null;
     }
     setIsTracking(false);
-    setLocation(null); // Optional: clear location marker on stop
+    setLocation(null);
   }, []);
 
   const toggleTracking = useCallback(() => {
@@ -53,12 +75,26 @@ export default function useLocationTracker() {
     }
   }, [isTracking, startTracking, stopTracking]);
 
+  const toggleWalkMode = () => {
+    const newState = !walkMode;
+    setWalkMode(newState);
+    if (newState) {
+      setWalkPath([]);
+      lastDroppedRef.current = null;
+      if (!isTracking) startTracking();
+    }
+  };
+
   return {
     location,
     isTracking,
+    walkMode,
+    walkPath,
     error,
     startTracking,
     stopTracking,
-    toggleTracking
+    toggleTracking,
+    toggleWalkMode,
+    setWalkPath
   };
 }
