@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Map, Plus, LogOut, Calendar, MapPin, Loader2, Trash2, X, Sun, Moon, CloudOff, RefreshCw } from 'lucide-react';
+import { Map, Plus, LogOut, Calendar, MapPin, Loader2, Trash2, X, Sun, Moon, CloudOff, RefreshCw, MessageCircle, FileDown } from 'lucide-react';
 import { offlineDb } from '../db/offlineDb';
+import { getWhatsAppShareLink, generatePDFReport } from '../utils/shareUtils';
 
 export default function HomePage() {
   const { currentUser, loginWithGoogle, logout } = useAuth();
@@ -254,6 +255,47 @@ export default function HomePage() {
                       <p className="text-xs text-gray-500 dark:text-gray-400 italic line-clamp-2 px-3 py-2 bg-gray-50 dark:bg-gray-800/40 rounded-lg border border-gray-100 dark:border-gray-800">
                         "{record.notes}"
                       </p>
+                    </div>
+                  )}
+
+                  {/* Quick Productivity Actions */}
+                  {!record.isOffline && (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                       <button 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           const metrics = {
+                             areaCents: record.area.cents,
+                             areaSqFt: record.area.sqFt,
+                             areaAcres: record.area.acres,
+                             areaSqMeters: record.area.sqMeters,
+                             perimeters: record.perimeters
+                           };
+                           const link = getWhatsAppShareLink(record, metrics);
+                           window.open(link, '_blank');
+                         }}
+                         className="flex items-center justify-center gap-1.5 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all border border-emerald-100 dark:border-emerald-800/50"
+                       >
+                         <MessageCircle size={14} />
+                         Share
+                       </button>
+                       <button 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           const metrics = {
+                             areaCents: record.area.cents,
+                             areaSqFt: record.area.sqFt,
+                             areaAcres: record.area.acres,
+                             areaSqMeters: record.area.sqMeters,
+                             perimeters: record.perimeters
+                           };
+                           generatePDFReport(record, metrics);
+                         }}
+                         className="flex items-center justify-center gap-1.5 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all border border-blue-100 dark:border-blue-800/50"
+                       >
+                         <FileDown size={14} />
+                         PDF
+                       </button>
                     </div>
                   )}
                   
