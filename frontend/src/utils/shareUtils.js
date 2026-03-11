@@ -14,10 +14,11 @@ export const getWhatsAppShareLink = (record, metrics) => {
   const centerLng = record.boundary[0].lng;
   const mapsLink = `https://www.google.com/maps?q=${centerLat},${centerLng}`;
 
-  const message = `*Land Survey Report: ${name}*\n\n` +
-                 `📍 *Area*: ${areaCents} Cents (${areaSqFt} Sq.Ft)\n` +
-                 `🗺️ *Location*: ${mapsLink}\n\n` +
-                 `Generated via LandMeasurement App`;
+  // Using high-compatibility bold text instead of emojis that might fail on some devices
+  const message = `*LAND SURVEY REPORT: ${name.toUpperCase()}*\n\n` +
+                 `*Area:* ${areaCents} Cents (${areaSqFt} Sq.Ft)\n` +
+                 `*Location:* ${mapsLink}\n\n` +
+                 `_Sent via LandMeasurement App_`;
 
   return `https://wa.me/?text=${encodeURIComponent(message)}`;
 };
